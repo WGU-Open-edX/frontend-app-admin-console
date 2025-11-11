@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useDeferredValue, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash.debounce';
 import { useIntl } from '@edx/frontend-platform/i18n';
@@ -62,10 +62,11 @@ const TeamTable = () => {
   const { showErrorToast } = useToastManager();
 
   const { querySettings, handleTableFetch } = useQuerySettings();
+  const deferredQuerySettings = useDeferredValue(querySettings);
 
   const {
     data: teamMembers, isLoading, isError, error, refetch,
-  } = useTeamMembers(libraryId, querySettings);
+  } = useTeamMembers(libraryId, deferredQuerySettings);
 
   if (error) {
     showErrorToast(error, refetch);
@@ -85,9 +86,9 @@ const TeamTable = () => {
     [roles],
   );
 
-  const fetchData = useMemo(() => debounce(handleTableFetch, 500), [handleTableFetch]);
+  // const fetchData = useMemo(() => debounce(handleTableFetch, 500), [handleTableFetch]);
 
-  useEffect(() => () => fetchData.cancel(), [fetchData]);
+  // useEffect(() => () => fetchData.cancel(), [fetchData]);
 
   return (
     <DataTable
@@ -99,7 +100,7 @@ const TeamTable = () => {
       manualSortBy
       defaultColumnValues={{ Filter: TextFilter }}
       numBreakoutFilters={3}
-      fetchData={fetchData}
+      fetchData={handleTableFetch}
       data={rows}
       itemCount={teamMembers?.count || 0}
       pageCount={pageCount}
